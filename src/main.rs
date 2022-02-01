@@ -1,22 +1,18 @@
-use std::io;
 
 use sodiumoxide;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
 
-use interface::app::AppResult;
-use interface::event::{Event, EventHandler};
-use interface::handler::handle_key_events;
 use otp::otp_helper;
-use interface::ui::Tui;
 use zeroize::Zeroize;
+
+use serde_json;
+use serde::{Deserialize, Serialize};
+use crate::otp::otp_helper::get_otp_code;
 
 mod utils;
 mod argument_functions;
 mod cryptography;
 mod importers;
 mod otp;
-mod interface;
 mod database_management;
 mod args;
 
@@ -46,11 +42,10 @@ fn init() -> Result<bool, String> {
     }
 }
 
-fn main() -> AppResult<()> {
+fn main() {
     match init() {
         Ok(true) => {
             println!("Database correctly initialized");
-            return Ok(());
         }
         Ok(false) => {}
         Err(e) => {
@@ -61,51 +56,55 @@ fn main() -> AppResult<()> {
     match args::args_parser() {
         // no args, show dashboard
         true => match dashboard(){
-            Ok(()) =>std::process::exit(0),
-            Err(_) => std::process::exit(-2), 
+            true => std::process::exit(0),
+            false => std::process::exit(-2), 
         },
         // args parsed, can exit
         false => std::process::exit(0),
     }
 }
 
-fn dashboard() -> AppResult<()> {
+#[derive(Serialize, Deserialize)]
+struct JsonResult{
+    index: usize,
+    issuer: String,
+    label: String,
+    otp_code: String,
+}
+
+impl JsonResult {
+    pub fn new(index: usize, issuer: String, label: String, otp_code: String) -> JsonResult {
+        JsonResult{
+            index: index, 
+            issuer: issuer,
+            label: label,
+            otp_code: otp_code
+        }
+    }
+}
+
+fn dashboard() -> bool {
     match otp_helper::read_codes() {
         Ok(elements) => {
             if elements.len() == 0 {
                 println!("No codes, type \"cotp -h\" to get help");
+                return false;
             } else {
-                // Create an application.
-                let mut app = interface::app::App::new(elements);
-
-                // Initialize the terminal user interface.
-                let backend = CrosstermBackend::new(io::stderr());
-                let terminal = Terminal::new(backend)?;
-                let events = EventHandler::new(250);
-                let mut tui = Tui::new(terminal, events);
-                tui.init()?;
-
-                // Start the main loop.
-                while app.running {
-                    // Render the user interface.
-                    tui.draw(&mut app)?;
-                    // Handle events.
-                    match tui.events.next()? {
-                        Event::Tick => app.tick(),
-                        Event::Key(key_event) => handle_key_events(key_event, &mut app)?,
-                        Event::Mouse(_) => {}
-                        Event::Resize(_, _) => {}
-                    }
-                }
-
-                // Exit the user interface.
-                tui.exit()?;
+			    let mut results: Vec<JsonResult> = Vec::new();
+				
+			    for i in 0..elements.len() {
+			        let otp_code = get_otp_code(&elements[i]).unwrap();
+			        results.push(JsonResult::new(i+1, elements[i].issuer(), elements[i].label(), otp_code))
+			    }
+				
+			    let json_string: &str = &serde_json::to_string_pretty(&results).unwrap();
+			    println!("{}", json_string);
             }
         }
         Err(e) => {
             eprintln!("An error occurred: {}", e);
-            return Err(Box::new(io::Error::new(io::ErrorKind::InvalidInput, e)));
+            return false;
         }
     }
-    Ok(())
+    return true;
 }

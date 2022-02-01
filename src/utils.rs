@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use dirs::home_dir;
 
@@ -81,14 +80,6 @@ pub fn check_elements(id: usize, elements: &Vec<OTPElement>) -> Result<(), Strin
     }
 
     Ok(())
-}
-
-pub fn percentage() -> u16 {
-    let now = SystemTime::now();
-    let since_the_epoch = now.duration_since(UNIX_EPOCH).unwrap();
-    let in_ms = since_the_epoch.as_secs() * 1000 + since_the_epoch.subsec_nanos() as u64 / 1000000;
-    let step = in_ms % 30000;
-    (step * 100 / 30000) as u16
 }
 
 #[cfg(test)]
