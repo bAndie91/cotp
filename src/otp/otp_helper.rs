@@ -6,7 +6,7 @@ use zeroize::Zeroize;
 
 
 pub fn read_codes() -> Result<Vec<OTPElement>, String> {
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     let result = match database_management::read_from_file(&pw) {
         Ok(result) => Ok(result),
         Err(e) => Err(e),
@@ -34,7 +34,7 @@ pub fn print_element_info(mut index: usize) -> Result<(), String> {
     }
     index -= 1;
 
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     let elements = match database_management::read_from_file(&pw) {
         Ok(result) => result,
         Err(e) => return Err(e),

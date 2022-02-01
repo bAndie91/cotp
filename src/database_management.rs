@@ -63,7 +63,7 @@ pub fn add_element(secret: &str, issuer: &str, label: &str, algorithm: &str, dig
         Ok(()) => {}
         Err(error) => return Err(error.to_string())
     }
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     let type_ = if hotp_type {
         "HOTP"
     }
@@ -90,7 +90,7 @@ pub fn remove_element_from_db(indexes: Vec<usize>) -> Result<(), String> {
         return Err(String::from("Bad args"));
     }
 
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     let mut elements: Vec<OTPElement> = match read_from_file(&pw) {
         Ok(result) => result,
         Err(e) => {
@@ -135,7 +135,7 @@ pub fn edit_element(mut id: usize, secret: &str, issuer: &str, label: &str, algo
     id -= 1;
 
     let mut elements: Vec<OTPElement>;
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     match read_from_file(&pw) {
         Ok(result) => elements = result,
         Err(_e) => return Err(String::from("Cannot decrypt existing database"))
@@ -185,7 +185,7 @@ pub fn export_database(path: PathBuf) -> Result<PathBuf, String> {
         Ok(result) => result,
         Err(e) => return Err(format!("Error during file reading: {:?}",e)),
     };
-    let mut pw = cryptography::prompt_for_passwords("Password: ", 8, false);
+    let mut pw = cryptography::prompt_for_database_password("Password: ", 0, false);
     let contents = cryptography::decrypt_string(&encrypted_contents, &pw);
     pw.zeroize();
     return match contents {

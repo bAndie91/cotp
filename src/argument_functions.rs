@@ -39,7 +39,7 @@ pub fn import(matches: &ArgMatches) {
         }
     };
 
-    let mut pw = cryptography::prompt_for_passwords("Choose a password: ", 8, true);
+    let mut pw = cryptography::prompt_for_database_password("Choose a password: ", 0, true);
     match database_management::overwrite_database(elements, &pw) {
         Ok(()) => {
             println!("Successfully imported database");
@@ -119,12 +119,12 @@ pub fn info(matches: &ArgMatches) {
 }
 
 pub fn change_password() {
-    let mut old_password = cryptography::prompt_for_passwords("Old password: ", 8, false);
+    let mut old_password = cryptography::prompt_for_database_password("Old password: ", 0, false);
     let decrypted_text = database_management::read_decrypted_text(&old_password);
     old_password.zeroize();
     match decrypted_text {
         Ok(mut s) => {
-            let mut new_password = cryptography::prompt_for_passwords("New password: ", 8, true);
+            let mut new_password = cryptography::prompt_for_passwords("New password: ", 0, true);
             match database_management::overwrite_database_json(&s, &new_password) {
                 Ok(()) => println!("Password changed"),
                 Err(e) => eprintln!("An error has occurred: {}", e),

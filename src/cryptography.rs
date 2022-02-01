@@ -89,6 +89,14 @@ fn vec_to_arr<T, const N: usize>(v: Vec<T>) -> [T; N] {
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
 
+pub fn prompt_for_database_password(message: &str, minimum_password_length: usize, verify: bool) -> String {
+    match std::env::var("COTP_PASSWORD") {
+        Ok(env_password) => return env_password,
+        Err(_e) => {},
+	}
+	return prompt_for_passwords(message, minimum_password_length, verify)
+}
+
 pub fn prompt_for_passwords(message: &str, minimum_password_length: usize, verify: bool) -> String {
     let mut password;
     loop {
