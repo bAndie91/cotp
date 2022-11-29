@@ -22,7 +22,7 @@ codegen-units = 1
 serde_json = "1.0.78"
 serde = { version = "1.0.136", features = ["derive"] }
 dirs = "4.0.0"
-rpassword = "5.0.1"
+rpassword = "7.2.0"
 data-encoding = "2.3.2"
 crossterm = "0.22.1"
 tui = "0.17.0"
